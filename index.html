@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fantasy roll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {            
+            font-family: 'Roboto', sans-serif;
+            background: url('https://tenor.com/th/view/2020-gif-26638477') no-repeat center center fixed;
+            background-size: cover;
+            color: #f2f2f2;
+            text-align: center;
+            padding-top: 100px;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 40px;
+            color: #000000; /* สีตัวหนังสือหลัก */
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            animation: glow 1.5s infinite alternate;
+            text-shadow: 0 0 10px #330ce0, 0 0 20px #01bfe0, 0 0 30px #c20909;
+        }
+        
+        /* เพิ่มการเคลื่อนไหวเรืองแสง */
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #e60000, 0 0 20px #530fc0, 0 0 30px #29e471;
+            }
+            to {
+                text-shadow: 0 0 20px #28f755, 0 0 40px #1a3aa3, 0 0 60px #e600db;
+            }
+        }
+        
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #3333cc;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #6666ff;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+
+        p {
+            font-size: 28px;
+            margin-top: 20px;
+            color: #00cc99;
+            text-shadow: 0 0 8px rgba(0, 204, 153, 0.8);
+            transition: transform 0.3s ease, opacity 0.5s;
+        }
+
+        img {
+            width: 200px;
+            height: auto;
+            margin-top: 20px;
+            transition: opacity 0.5s ease;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Animation */
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #e6e600, 0 0 20px #e6e600, 0 0 30px #ffff66, 0 0 40px #ffff66;
+            }
+            to {
+                text-shadow: 0 0 20px #ffff66, 0 0 30px #e6e600, 0 0 40px #ffff66, 0 0 50px #e6e600;
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .fade-in.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .locked {
+            display: none;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            color: #f2f2f2;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .locked button {
+            margin-top: 10px;
+            background-color: #00cc66;
+            color: #fff;
+        }
+
+        .language-select {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ระบบสุ่มของ</h1>
+    <select id="language-select" class="language-select" onchange="changeLanguage()">
+        <option value="th">ไทย</option>
+        <option value="en">English</option>
+    </select>
+    <button id="roll-button" onclick="randomItem()">สุ่ม</button>
+    <p id="result" class="fade-in">คลิกปุ่มเพื่อสุ่มของ</p>
+    <img id="item-image" src="" alt="" style="display: none;">
+
+    <div class="locked" id="lock-message">
+        คุณได้สิ่งของหายากแล้ว! ต้องการเปลี่ยนหรือไม่?
+        <br>
+        <button onclick="reroll()">เปลี่ยน</button>
+        <button onclick="keep()">ไม่เปลี่ยน</button>
+    </div>
+
+    <audio id="roll-sound" src="roll-sound.mp3"></audio>
+
+    <script>
+        const translations = {
+            en: {
+                title: "Random Item Generator",
+                button: "Roll",
+                result: "Click the button to roll for an item",
+                rareItemMessage: "You got a rare item! Do you want to reroll?"
+            },
+            th: {
+                title: "ระบบสุ่มของ",
+                button: "สุ่ม",
+                result: "คลิกปุ่มเพื่อสุ่มของ",
+                rareItemMessage: "คุณได้สิ่งของหายากแล้ว! ต้องการเปลี่ยนหรือไม่?"
+            }
+        };
+
+        function changeLanguage() {
+            const lang = document.getElementById('language-select').value;
+            document.querySelector('h1').innerText = translations[lang].title;
+            document.getElementById('roll-button').innerText = translations[lang].button;
+            document.getElementById('result').innerText = translations[lang].result;
+            document.getElementById('lock-message').querySelectorAll('button')[0].innerText = translations[lang].rareItemMessage;
+        }
+
+        function randomItem() {
+            const rollSound = document.getElementById('roll-sound');
+            rollSound.play();
+
+            const items = [
+                { name: 'ดาบ', weight: 7, image: 'file:///C:/Users/LOID1/Downloads/%E2%80%94Pngtree%E2%80%94black%20sword%20decoration%20illustration_4549953.png' },
+                { name: 'โล่', weight: 3, image: 'file:///C:/Users/LOID1/Downloads/pngegg.png' },
+                { name: 'ยาเพิ่มพลัง', weight: 5, image: 'file:///C:/Users/LOID1/Downloads/pngegg%20(2).png' },
+                { name: 'หมวก', weight: 5, image: 'file:///C:/Users/LOID1/Downloads/pngegg%20(1).png' },
+                { name: 'รองเท้า', weight: 6, image: 'file:///C:/Users/LOID1/Downloads/%E2%80%94Pngtree%E2%80%94military%20military%20boots%20cartoon%20illustration_4554787.png' },
+                { name: 'ดาบไฟ', weight: 0.0005, image: 'fire-sword-image-url' },
+                { name: 'ดาบน้ำ', weight: 0.011, image: 'water-sword-image-url' },
+                { name: 'เกาะเงา', weight: 0.05, image: 'shadow-cloak-image-url' }
+            ];
+
+            let weightedItems = [];
+            items.forEach(item => {
+                for (let i = 0; i < item.weight; i++) {
+                    weightedItems.push(item);
+                }
+            });
+
+            const randomIndex = Math.floor(Math.random() * weightedItems.length);
+            const selectedItem = weightedItems[randomIndex];
+
+            const resultElement = document.getElementById('result');
+            const imageElement = document.getElementById('item-image');
+
+            resultElement.classList.remove('show');
+            setTimeout(() => {
+                resultElement.innerText = `คุณได้: ${selectedItem.name}`;
+                resultElement.classList.add('show');
+
+                imageElement.src = selectedItem.image;
+                imageElement.style.display = 'block';
+                imageElement.style.opacity = 0;
+                
+                setTimeout(() => {
+                    imageElement.style.opacity = 1;
+                }, 100);
+
+                if (selectedItem.name.includes('ดาบไฟ') || selectedItem.name.includes('ดาบน้ำ') || selectedItem.name.includes('เกาะเงา')) {
+                    const lang = document.getElementById('language-select').value;
+                    const lockMessage = document.getElementById('lock-message');
+                    lockMessage.style.display = 'block';
+                    lockMessage.querySelector('button').innerText = translations[lang].rareItemMessage;
+                    document.getElementById('roll-button').disabled = true;
+                }
+            }, 500);
+        }
+
+        function reroll() {
+            document.getElementById('lock-message').style.display = 'none';
+            document.getElementById('roll-button').disabled = false;
+            randomItem();
+        }
+
+        function keep() {
+            document.getElementById('lock-message').style.display = 'none';
+            document.getElementById('roll-button').disabled = false;
+        }
+    </script>
+</body>
+</html>
